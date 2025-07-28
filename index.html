@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>風歌番付 予想サイト</title>
+    <!-- Interフォントの読み込み -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Sortable.js CDN for drag-and-drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* 明るいグレーの背景 */
+            color: #333; /* 基本的なテキスト色 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* 画面全体を占めるようにする */
+            margin: 0;
+            padding: 20px; /* 全体のパディング */
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff; /* コンテンツエリアの背景 */
+            border-radius: 20px; /* 角を丸くする */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* 影を追加 */
+            padding: 40px; /* コンテナ内のパディング */
+            text-align: center;
+            max-width: 900px; /* 最大幅を少し広げる */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 30px; /* 要素間のスペース */
+        }
+        h1 {
+            color: #8B5CF6; /* 紫色のタイトル */
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #6B7280; /* グレーのサブタイトル */
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .countdown-timer {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #EF4444; /* 赤色のカウントダウン */
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #FEF2F2; /* 薄い赤の背景 */
+            border-radius: 10px;
+            border: 2px solid #FCA5A5; /* 薄い赤のボーダー */
+        }
+        .action-area {
+            margin-top: 20px;
+        }
+        .action-button {
+            background-color: #8B5CF6; /* 紫色のボタン */
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: inline-block;
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4); /* ボタンの影 */
+            cursor: pointer; /* カーソルをポインターに */
+        }
+        .action-button:hover {
+            background-color: #7C3AED; /* ホバー時の色 */
+            transform: translateY(-2px); /* 少し浮き上がる */
+        }
+        .action-button:disabled {
+            background-color: #A78BFA; /* 無効時の色 */
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        .footer {
+            margin-top: 40px;
+            font-size: 0.9rem;
+            color: #6B7280;
+        }
+        .footer a {
+            color: #8B5CF6;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* 予想投稿ページと結果ページのスタイル */
+        .page-section {
+            display: none; /* 初期状態では非表示 */
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+            background-color: #f9f9f9;
+            text-align: left;
+        }
+        .page-section.active {
+            display: block; /* アクティブなセクションを表示 */
+        }
+
+        /* 楽曲選択UI */
+        .song-list-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .song-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .song-item:last-child {
+            border-bottom: none;
+        }
+        .song-item:hover {
+            background-color: #f0f0f0;
+        }
+        .song-item input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        /* ドラッグ＆ドロップリスト */
+        .drag-drop-list {
+            border: 2px dashed #8B5CF6;
+            border-radius: 10px;
+            min-height: 250px;
+            padding: 15px;
+            background-color: #F3F8FF; /* 薄い青の背景 */
+            margin-top: 20px;
+        }
+        .drag-drop-item {
+            background-color: #E0E7FF; /* 薄い紫の背景 */
+            color: #4338CA; /* 濃い青のテキスト */
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+            cursor: grab;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .drag-drop-item:last-child {
+            margin-bottom: 0;
+        }
+        .drag-drop-item .rank {
+            font-size: 1.1em;
+            margin-right: 10px;
+            color: #6D28D9; /* より濃い紫 */
+        }
+        .drag-drop-item.sortable-chosen {
+            background-color: #BFDBFE; /* ドラッグ中の色 */
+        }
+        .drag-drop-item.sortable-ghost {
+            opacity: 0.5;
+            background-color: #D1D5DB;
+        }
+
+        /* 投稿完了メッセージ */
+        .confirmation-message {
+            background-color: #D1FAE5; /* 薄い緑の背景 */
+            color: #065F46; /* 濃い緑のテキスト */
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* 結果表示 */
+        .results-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .results-item {
+            background-color: #F0F9FF; /* 薄い青の背景 */
+            border: 1px solid #BFDBFE;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        .results-item .rank {
+            font-weight: 700;
+            color: #6D28D9;
+            margin-right: 15px;
+            min-width: 30px;
+            text-align: right;
+        }
+        .results-item .song-name {
+            flex-grow: 1;
+        }
+        .results-item .score {
+            font-weight: 700;
+            color: #10B981; /* 緑色 */
+        }
+
+        /* レスポンシブデザインの調整 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+            .countdown-timer {
+                font-size: 1.8rem;
+            }
+            .action-button {
+                padding: 12px 25px;
+                font-size: 1rem;
+            }
+            .container {
+                padding: 25px;
+                margin: 10px;
+            }
+            .song-item {
+                font-size: 0.9rem;
+            }
+            .drag-drop-item {
+                padding: 10px 12px;
+                font-size: 0.95rem;
+            }
+            .results-item {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- トップページセクション -->
+        <div id="topPage" class="page-section active">
+            <header>
+                <h1>風歌番付 予想サイト</h1>
+                <h2>風男塾「風歌番付」ファン予想</h2>
+            </header>
+
+            <main>
+                <p>
+                    風男塾の最新アルバム「風歌番付」にちなんで、ファンの皆さんが選ぶ**上位5曲を予想するサイト**です。
+                    ライブ開催日までのカウントダウンを見ながら、ご自身の想いを込めて予想を投稿しましょう！
+                </p>
+                <p class="text-sm text-red-600 font-semibold mt-4">
+                    ※このサイトはファンが独自に作成した非公式のサイトです。
+                </p>
+
+                <div class="countdown-timer" id="countdown">
+                    ライブまであと XX日 XX時間 XX分 XX秒
+                </div>
+
+                <div class="action-area">
+                    <button id="predictButton" class="action-button" disabled>予想する</button>
+                    <span id="predictionClosedMessage" class="hidden text-gray-600 text-lg">投票受付終了</span>
+                    <button id="viewResultsButton" class="action-button hidden">結果を見る</button>
+                </div>
+            </main>
+        </div>
+
+        <!-- 予想投稿ページセクション -->
+        <div id="predictionPage" class="page-section">
+            <h2 class="text-2xl font-bold mb-6 text-center text-purple-700">あなたのTOP5を予想しよう！</h2>
+
+            <div class="mb-4 text-center text-gray-700">
+                <p>下のリストから**上位5曲**を選んでください。</p>
+                <p>選択後、右のエリアでドラッグ＆ドロップで順位を入れ替えられます。</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 楽曲選択リスト -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">全楽曲リスト (<span id="selectedCount">0</span>/5 選択中)</h3>
+                    <!-- 検索バーの追加 -->
+                    <input type="text" id="songSearchInput" placeholder="楽曲名を検索..." class="w-full p-2 mb-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <div class="song-list-container">
+                        <ul id="allSongsList">
+                            <!-- 楽曲リストはJavaScriptで動的に生成されます -->
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- ドラッグ＆ドロップエリア -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">あなたのTOP5予想</h3>
+                    <div class="drag-drop-list" id="selectedSongsList">
+                        <p class="text-gray-500 text-center mt-10">ここに5曲が選択されると、ドラッグ＆ドロップで順位を入れ替えられます。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-area mt-8">
+                <button id="submitPredictionButton" class="action-button w-full md:w-auto px-10 py-4 text-xl" disabled>Xに投稿する</button>
+            </div>
+
+            <!-- 投稿完了メッセージ (初期は非表示) -->
+            <div id="predictionConfirmation" class="confirmation-message hidden mt-8">
+                <p>🎉 予想が完了しました！X(旧Twitter)に投稿されました！ご参加ありがとうございます！</p>
+                <!-- shareOnXButton は submitPredictionButton に統合されたため削除 -->
+            </div>
+
+            <button id="backToTopFromPredict" class="action-button bg-gray-500 hover:bg-gray-600 mt-8">トップに戻る</button>
+        </div>
+
+        <!-- 結果ページセクション -->
+        <div id="resultsPage" class="page-section">
+            <h2 class="text-2xl font-bold mb-6 text-center text-purple-700">ファン全体の集計結果</h2>
+
+            <div id="overallRanking" class="mb-8">
+                <h3 class="text-xl font-semibold mb-3 text-gray-800">TOP5ランキング</h3>
+                <ul class="results-list">
+                    <!-- 結果はJavaScriptで動的に生成されます -->
+                    <li class="results-item"><span class="rank">1位</span> <span class="song-name">曲名A</span> <span class="score">スコア: 100</span></li>
+                    <li class="results-item"><span class="rank">2位</span> <span class="song-name">曲名B</span> <span class="score">スコア: 95</span></li>
+                    <li class="results-item"><span class="rank">3位</span> <span class="song-name">曲名C</span> <span class="score">スコア: 90</span></li>
+                    <!-- 以下、同様に5位まで -->
+                </ul>
+            </div>
+
+            <div id="yourPredictionResults" class="mb-8 hidden">
+                <h3 class="text-xl font-semibold mb-3 text-gray-800">あなたの予想と正解度</h3>
+                <p id="yourPredictionText" class="mb-4 text-gray-700">あなたの予想: 1位: 曲A, 2位: 曲B, ...</p>
+                <p id="accuracyScore" class="text-2xl font-bold text-green-600">正解度: XX%</p>
+                <button id="shareYourResultsOnXButton" class="action-button bg-blue-500 hover:bg-blue-600 mt-4">
+                    あなたの結果をX(旧Twitter)にシェアする
+                </button>
+            </div>
+
+            <button id="backToTopFromResults" class="action-button bg-gray-500 hover:bg-gray-600 mt-8">トップに戻る</button>
+        </div>
+
+        <footer class="footer">
+            <p>&copy; 2025 風歌番付 予想サイト. All rights reserved.</p>
+            <p>
+                <a href="#">プライバシーポリシー</a> |
+                <a href="#">利用規約</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // ライブ開催日時を設定 (日本時間: 2025年8月9日 13時00分00秒)
+        const liveDate = new Date('2025-08-09T13:00:00+09:00');
+        // 予想投稿締め切り日時 (ライブ開催の1時間前と仮定)
+        const predictionEndDate = new Date(liveDate.getTime() - (60 * 60 * 1000)); // ライブの1時間前
+
+        // DOM要素の取得
+        const topPage = document.getElementById('topPage');
+        const predictionPage = document.getElementById('predictionPage');
+        const resultsPage = document.getElementById('resultsPage');
+
+        const countdownElement = document.getElementById('countdown');
+        const predictButton = document.getElementById('predictButton');
+        const predictionClosedMessage = document.getElementById('predictionClosedMessage');
+        const viewResultsButton = document.getElementById('viewResultsButton');
+
+        const allSongsListElement = document.getElementById('allSongsList');
+        const songSearchInput = document.getElementById('songSearchInput'); // 検索入力フィールド
+        const selectedSongsListElement = document.getElementById('selectedSongsList');
+        const selectedCountElement = document.getElementById('selectedCount');
+        const submitPredictionButton = document.getElementById('submitPredictionButton');
+        const predictionConfirmation = document.getElementById('predictionConfirmation');
+        // const shareOnXButton = document.getElementById('shareOnXButton'); // 削除されたためコメントアウト
+
+        const overallRankingElement = document.getElementById('overallRanking');
+        const yourPredictionResultsElement = document.getElementById('yourPredictionResults');
+        const yourPredictionTextElement = document.getElementById('yourPredictionText');
+        const accuracyScoreElement = document.getElementById('accuracyScore');
+        const shareYourResultsOnXButton = document.getElementById('shareYourResultsOnXButton');
+
+        const backToTopFromPredictButton = document.getElementById('backToTopFromPredict');
+        const backToTopFromResultsButton = document.getElementById('backToTopFromResults');
+
+        // 風男塾の全楽曲リスト
+        const allSongs = [
+            { id: 'song1', name: '男坂' }, { id: 'song2', name: '17\'s☆STAR' }, { id: 'song3', name: '俺の空' },
+            { id: 'song4', name: 'ヤッターマンの歌' }, { id: 'song5', name: 'いい男' }, { id: 'song6', name: '勝つんだ！' },
+            { id: 'song7', name: 'キミのものがたり' }, { id: 'song8', name: '哀戦歌' }, { id: 'song9', name: '天才バカボン' },
+            { id: 'song10', name: 'ヲタキスト' }, { id: 'song11', name: 'ヤッターマンの歌（Korean ver.）' }, { id: 'song12', name: '燃えてヒーロー' },
+            { id: 'song13', name: '絆' }, { id: 'song14', name: '中野腐男子学園校歌' }, { id: 'song15', name: '無敵！夏休み' },
+            { id: 'song16', name: 'アララの呪文' }, { id: 'song17', name: '草食ライオン' }, { id: 'song18', name: '同じ時代に生まれた若者たち' },
+            { id: 'song19', name: '檄！帝国華撃団（改）～腐男塾Ver.～' }, { id: 'song20', name: 'Rusty Sword' }, { id: 'song21', name: 'BOY\'S LOVE～拳のハーモニー編～' },
+            { id: 'song22', name: 'きまぐれのやる気' }, { id: 'song23', name: 'Love Spider' }, { id: 'song24', name: '風にのって' },
+            { id: 'song25', name: '風一揆' }, { id: 'song26', name: 'my home town' }, { id: 'song27', name: '夢幻のプロキオン' },
+            { id: 'song28', name: '雨ときどき晴れのち虹' }, { id: 'song29', name: 'せーのでドンマイ！' }, { id: 'song30', name: '勇気のFLAG' },
+            { id: 'song31', name: '野良猫マリア' }, { id: 'song32', name: 'MOVE' }, { id: 'song33', name: '飛び立て！フゥレンジャー' },
+            { id: 'song34', name: '棚田米' }, { id: 'song35', name: '信じてゆけ' }, { id: 'song36', name: '人生わははっ！' },
+            { id: 'song37', name: '雪の夜' }, { id: 'song38', name: 'センパイの彼女' }, { id: 'song39', name: '下を向いて帰ろう' },
+            { id: 'song40', name: 'RIKISHI-MAN' }, { id: 'song41', name: 'じゃあね' }, { id: 'song42', name: '男装レボリューション' },
+            { id: 'song43', name: 'カクテル・オン・ザ・ビーチ' }, { id: 'song44', name: '大航海ボーイ' }, { id: 'song45', name: 'チェンメン天国' },
+            { id: 'song46', name: '太陽みたいなキミが好き' }, { id: 'song47', name: '傷だらけのレシーバー（風男塾ver.）' }, { id: 'song48', name: 'EYE OF THE TYPHOON' },
+            { id: 'song49', name: 'Sensation' }, { id: 'song50', name: '紙ヒコーキ' }, { id: 'song51', name: 'カラフルプランタン' },
+            { id: 'song52', name: '僕らの歩く道' }, { id: 'song53', name: 'Galileo ～プロキオンを越えて～' }, { id: 'song54', name: 'BE HERO' },
+            { id: 'song55', name: '七色の鳥' }, { id: 'song56', name: 'ジュクウォーカー' }, { id: 'song57', name: '瞬間到来フューチャー' },
+            { id: 'song58', name: '桜のYELL' }, { id: 'song59', name: 'サバイラブゲーム' }, { id: 'song60', name: 'もしも これが恋なら' },
+            { id: 'song61', name: 'SAMURAI' }, { id: 'song62', name: 'かざみどり' }, { id: 'song63', name: '友達と呼べる君へ' },
+            { id: 'song64', name: 'OH! ホワイトデイ' }, { id: 'song65', name: 'ラブメッセンジャー' }, { id: 'song66', name: 'STARTING STAR!' },
+            { id: 'song67', name: 'Fighting Man' }, { id: 'song68', name: 'This is Love' }, { id: 'song69', name: 'NOIR～ノワール～' },
+            { id: 'song70', name: 'With You' }, { id: 'song71', name: 'ロンリー オンリー ハート' }, { id: 'song72', name: '証－soul mate－' },
+            { id: 'song73', name: 'イノセント・ラバー' }, { id: 'song74', name: '星屑の雫' }, { id: 'song75', name: '希望の夕陽が燃えている' },
+            { id: 'song76', name: '新たなる幕開けのための幕開けによる狂詩曲～キミがいればオレたちも笑顔∞（無限大）～' }, { id: 'song77', name: 'キラッとL☆VE' }, { id: 'song78', name: 'しあわせとんぼ' },
+            { id: 'song79', name: '君色々移り' }, { id: 'song80', name: 'Welcome to my familia' }, { id: 'song81', name: 'Milky Way～いま、あいにゆくよ～' },
+            { id: 'song82', name: '最高シャウト!' }, { id: 'song83', name: 'T・O・T!～Vivid Men～' }, { id: 'song84', name: 'ピースサインミーティング' },
+            { id: 'song85', name: 'ユレロ' }, { id: 'song86', name: 'Caramel Popcorn' }, { id: 'song87', name: 'お願いトムテ～聖なる夜に～' },
+            { id: 'song88', name: 'ツバメ' }, { id: 'song89', name: 'Ballad of the Phantom' }, { id: 'song90', name: '@Daylight' },
+            { id: 'song91', name: 'Dash&Daaash!!' }, { id: 'song92', name: 'Excuse You!' }, { id: 'song93', name: '夢の座標' },
+            { id: 'song94', name: 'sunny' }, { id: 'song95', name: '波ギュっ！' }, { id: 'song96', name: 'Unchain Boys' },
+            { id: 'song97', name: 'ミュージック' }, { id: 'song98', name: 'No one\'s gonna stop us now' }, { id: 'song99', name: 'ココア・パンケーキ・べイビー' },
+            { id: 'song100', name: '笑う門に明日は来る' }, { id: 'song101', name: 'Diamond Heart' }, { id: 'song102', name: 'DDD' },
+            { id: 'song103', name: '会いたい、会いたい' }, { id: 'song104', name: 'テノナルホウヘ' }, { id: 'song105', name: 'Your Eyes Only' },
+            { id: 'song106', name: '青春' }, { id: 'song107', name: '廻れ風ぐるま' }, { id: 'song108', name: 'Bye-bye Pain' },
+            { id: 'song109', name: '忘れ雪' }, { id: 'song110', name: 'LIKE A RAINBOW' }, { id: 'song111', name: '叛逆者たちに明日よあれ' },
+            { id: 'song112', name: 'OPEN SESAME' }, { id: 'song113', name: '生きることは尊いに決まってんだろ' }, { id: 'song114', name: 'WE ARE LIGHT SAVERS' },
+            { id: 'song115', name: 'Best Wishes' }, { id: 'song116', name: 'BLESS' }, { id: 'song117', name: 'マリー・ユー！' },
+            { id: 'song118', name: 'ハピスク' }, { id: 'song119', name: 'Hello Hello' }, { id: 'song120', name: 'Tender Rain' },
+            { id: 'song121', name: 'SHINY SHINY' }, { id: 'song122', name: '七常の風器' }, { id: 'song123', name: 'Baby U' },
+            { id: 'song124', name: '勝つんだ！(Punk Ver.)' }, { id: 'song125', name: 'Jellyfish' }, { id: 'song126', name: '君日和' },
+            { id: 'song127', name: 'ガンバーレ！' }, { id: 'song128', name: 'The Sky' }, { id: 'song129', name: '君とならば、僕らならば' },
+            { id: 'song130', name: 'ガムシャラダッシュ！' }, { id: 'song131', name: 'My Radio Star' }, { id: 'song132', name: 'マンボウ' },
+            { id: 'song133', name: '失恋ジェラテリア' }, { id: 'song134', name: 'ビーストロリポップ' }, { id: 'song135', name: 'little-big-love' },
+            { id: 'song136', name: 'My own funk session' }, { id: 'song137', name: '一生青春、一緒に青春' }, { id: 'song138', name: 'FOCUS！' },
+            { id: 'song139', name: 'Sing for you' }, { id: 'song140', name: 'イッサイガッサイI LOVE YOU' }, { id: 'song141', name: 'ツナガルスキマ' },
+            { id: 'song142', name: 'おやすみフロート' }, { id: 'song143', name: 'exdreamers' }, { id: 'song144', name: '寒波襲来' },
+            { id: 'song145', name: 'A new chapter' }, { id: 'song146', name: 'To Future Me' }, { id: 'song147', name: 'Flower' },
+            { id: 'song148', name: 'Fun Fan Fun' }
+        ];
+
+        let selectedSongs = []; // ユーザーが選択した5曲の配列
+
+        // ページ表示を切り替える関数
+        function showPage(pageId) {
+            const pages = [topPage, predictionPage, resultsPage];
+            pages.forEach(page => {
+                if (page.id === pageId) {
+                    page.classList.add('active');
+                } else {
+                    page.classList.remove('active');
+                }
+            });
+        }
+
+        // カウントダウンタイマーの更新
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distanceToLive = liveDate.getTime() - now;
+            const distanceToPredictionEnd = predictionEndDate.getTime() - now;
+
+            // カウントダウン表示の更新
+            if (distanceToLive > 0) {
+                const days = Math.floor(distanceToLive / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distanceToLive % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distanceToLive % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distanceToLive % (1000 * 60)) / 1000);
+                countdownElement.innerHTML = `ライブまであと ${days}日 ${hours}時間 ${minutes}分 ${seconds}秒`;
+            } else {
+                countdownElement.innerHTML = 'ライブ開催中！';
+            }
+
+            // 予想投稿ボタンの制御
+            if (distanceToPredictionEnd > 0) {
+                // 予想投稿期間中
+                predictButton.disabled = false;
+                predictButton.textContent = '予想する';
+                predictButton.classList.remove('hidden');
+                predictionClosedMessage.classList.add('hidden');
+                viewResultsButton.classList.add('hidden');
+            } else {
+                // 予想投稿期間終了後
+                predictButton.disabled = true;
+                predictButton.classList.add('hidden');
+                predictionClosedMessage.classList.remove('hidden');
+                // ライブ開催時刻を過ぎたら「結果を見る」ボタンを表示
+                if (now >= liveDate.getTime()) {
+                    viewResultsButton.classList.remove('hidden');
+                    viewResultsButton.textContent = '結果を見る';
+                }
+            }
+        }
+
+        // 全楽曲リストの表示とチェックボックスイベントリスナーの設定 (検索機能付き)
+        function renderAllSongs(searchQuery = '') {
+            allSongsListElement.innerHTML = ''; // リストをクリア
+            const filteredSongs = allSongs.filter(song =>
+                song.name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+
+            filteredSongs.forEach(song => {
+                const li = document.createElement('li');
+                li.className = 'song-item';
+                // 既に選択されている曲はチェック済みとして表示
+                const isSelected = selectedSongs.some(s => s.id === song.id);
+                li.innerHTML = `
+                    <input type="checkbox" id="song-${song.id}" value="${song.id}" data-song-name="${song.name}" class="form-checkbox h-5 w-5 text-purple-600 rounded" ${isSelected ? 'checked' : ''}>
+                    <label for="song-${song.id}" class="ml-2 text-gray-700 cursor-pointer">${song.name}</label>
+                `;
+                allSongsListElement.appendChild(li);
+
+                const checkbox = li.querySelector('input[type="checkbox"]');
+                checkbox.addEventListener('change', (event) => {
+                    if (event.target.checked) {
+                        if (selectedSongs.length < 5) { // 10曲から5曲に変更
+                            selectedSongs.push({ id: song.id, name: song.name });
+                        } else {
+                            event.target.checked = false; // 5曲以上選択できないようにする
+                            alert('選択できる楽曲は5曲までです。'); // アラートも5曲に
+                        }
+                    } else {
+                        selectedSongs = selectedSongs.filter(s => s.id !== song.id);
+                    }
+                    updateSelectedSongsList();
+                });
+            });
+        }
+
+        // 選択された楽曲リスト（ドラッグ＆ドロップエリア）の更新
+        function updateSelectedSongsList() {
+            selectedSongsListElement.innerHTML = '';
+            selectedCountElement.textContent = selectedSongs.length;
+
+            if (selectedSongs.length === 0) {
+                selectedSongsListElement.innerHTML = '<p class="text-gray-500 text-center mt-10">ここに5曲が選択されると、ドラッグ＆ドロップで順位を入れ替えられます。</p>'; // 説明文も5曲に
+                submitPredictionButton.disabled = true;
+                return;
+            }
+
+            selectedSongs.forEach((song, index) => {
+                const li = document.createElement('li');
+                li.className = 'drag-drop-item';
+                li.setAttribute('data-id', song.id);
+                li.innerHTML = `<span class="rank">${index + 1}位</span> ${song.name}`;
+                selectedSongsListElement.appendChild(li);
+            });
+
+            // 5曲選択されたら投稿ボタンを有効化
+            submitPredictionButton.disabled = selectedSongs.length !== 5; // 10曲から5曲に変更
+        }
+
+        // Sortable.jsの初期化
+        let sortable;
+        function initSortable() {
+            if (sortable) {
+                sortable.destroy(); // 既存のSortableインスタンスを破棄
+            }
+            sortable = Sortable.create(selectedSongsListElement, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                chosenClass: 'sortable-chosen',
+                onEnd: function (evt) {
+                    // ドラッグ＆ドロップ後の順位を更新
+                    const newOrder = Array.from(evt.from.children).map(item => {
+                        const songId = item.getAttribute('data-id');
+                        return selectedSongs.find(s => s.id === songId);
+                    });
+                    selectedSongs = newOrder.filter(Boolean); // null/undefinedを除外
+                    updateSelectedSongsList(); // 順位表示を更新
+                }
+            });
+        }
+
+        // 予想投稿処理 (Xに投稿するボタンのクリックハンドラ)
+        async function submitPredictionAndShareOnX() {
+            if (selectedSongs.length !== 5) { // 5曲選択されているか確認
+                alert('5曲すべてを選択して順位を決定してください。');
+                return;
+            }
+
+            // ユーザーの予想内容をシェア用にローカルストレージに保存
+            const predictionData = selectedSongs.map((song, index) => ({
+                songId: song.id,
+                rank: index + 1
+            }));
+            localStorage.setItem('lastPrediction', JSON.stringify(predictionData));
+
+            // Xへのシェアを実行
+            sharePredictionOnX();
+
+            // 成功時のUI表示
+            submitPredictionButton.classList.add('hidden');
+            predictionConfirmation.classList.remove('hidden');
+        }
+
+        // X（旧Twitter）シェア機能
+        function sharePredictionOnX() {
+            const lastPrediction = JSON.parse(localStorage.getItem('lastPrediction'));
+            if (!lastPrediction || lastPrediction.length === 0) {
+                alert('シェアする予想が見つかりません。');
+                return;
+            }
+
+            let tweetText = '私の風歌番付TOP5予想！\n'; // TOP10からTOP5に変更
+            lastPrediction.forEach((item, index) => {
+                const song = allSongs.find(s => s.id === item.songId);
+                if (song) {
+                    tweetText += `${index + 1}位: ${song.name}\n`;
+                }
+            });
+            tweetText += '\n#風歌番付勝手に予想 #風男塾'; // ハッシュタグを修正
+            const siteUrl = window.location.href; // 現在のサイトURL
+            const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(siteUrl)}`;
+            window.open(tweetUrl, '_blank');
+        }
+
+        // 結果ページの表示 (仮データ)
+        function renderResults() {
+            const overallRankingListElement = overallRankingElement.querySelector('ul');
+            overallRankingListElement.innerHTML = ''; // リストをクリア
+
+            // 仮の集計結果データ (TOP5に修正)
+            const mockOverallResults = [
+                { id: 'song6', name: '勝つんだ！', score: 120, rank: 1 },
+                { id: 'song25', name: '風一揆', score: 115, rank: 2 },
+                { id: 'song18', name: '同じ時代に生まれた若者たち', score: 110, rank: 3 },
+                { id: 'song42', name: '男装レボリューション', score: 105, rank: 4 },
+                { id: 'song1', name: '男坂', score: 100, rank: 5 },
+            ];
+
+            mockOverallResults.forEach(result => {
+                const li = document.createElement('li');
+                li.className = 'results-item';
+                li.innerHTML = `<span class="rank">${result.rank}位</span> <span class="song-name">${result.name}</span> <span class="score">スコア: ${result.score}</span>`;
+                overallRankingListElement.appendChild(li);
+            });
+
+            // ユーザー自身の予想と正解度の表示 (ローカルストレージに保存された予想があれば)
+            const lastPrediction = JSON.parse(localStorage.getItem('lastPrediction'));
+            if (lastPrediction && lastPrediction.length === 5) { // 5曲に変更
+                yourPredictionResultsElement.classList.remove('hidden');
+                let yourPredictionString = 'あなたの予想: ';
+                lastPrediction.forEach((item, index) => {
+                    const song = allSongs.find(s => s.id === item.songId);
+                    if (song) {
+                        yourPredictionString += `${index + 1}位: ${song.name}${index < 4 ? ', ' : ''}`; // カンマの数を調整
+                    }
+                });
+                yourPredictionTextElement.textContent = yourPredictionString;
+
+                // 正解度ロジック (簡易版: 順位が一致した数で計算)
+                let correctCount = 0;
+                lastPrediction.forEach((userItem, userIndex) => {
+                    const overallRankedItem = mockOverallResults.find(r => r.id === userItem.songId);
+                    if (overallRankedItem && overallRankedItem.rank === (userIndex + 1)) {
+                        correctCount++;
+                    }
+                });
+                const accuracy = (correctCount / 5) * 100; // 5に変更
+                accuracyScoreElement.textContent = `正解度: ${accuracy.toFixed(1)}%`;
+
+            } else {
+                yourPredictionResultsElement.classList.add('hidden');
+            }
+        }
+
+        // X（旧Twitter）シェア機能 (結果ページ用)
+        function shareResultsOnX() {
+            const accuracyText = accuracyScoreElement.textContent;
+            const yourPredictionText = yourPredictionTextElement.textContent;
+            let tweetText = `風歌番付ファン予想の結果が出ました！\n${accuracyText}\n\n${yourPredictionText}\n\n#風歌番付勝手に予想 #風男塾`; // ハッシュタグを修正
+            const siteUrl = window.location.href;
+            const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(siteUrl)}`;
+            window.open(tweetUrl, '_blank');
+        }
+
+
+        // イベントリスナーの設定
+        predictButton.addEventListener('click', () => {
+            showPage('predictionPage');
+            renderAllSongs(); // 楽曲リストを再描画
+            selectedSongs = []; // 選択済み楽曲をリセット
+            updateSelectedSongsList(); // 選択済みリストをリセット
+            initSortable(); // Sortable.jsを初期化
+            predictionConfirmation.classList.add('hidden'); // 投稿完了メッセージを非表示に
+            submitPredictionButton.classList.remove('hidden'); // 投稿ボタンを再表示
+            songSearchInput.value = ''; // 検索バーをクリア
+        });
+
+        viewResultsButton.addEventListener('click', () => {
+            showPage('resultsPage');
+            renderResults(); // 結果をレンダリング
+        });
+
+        // 「Xに投稿する」ボタンのクリックイベントを新しい関数に紐付け
+        submitPredictionButton.addEventListener('click', submitPredictionAndShareOnX);
+        // shareOnXButton は削除されたため、このイベントリスナーも不要
+        // shareOnXButton.addEventListener('click', sharePredictionOnX);
+
+        shareYourResultsOnXButton.addEventListener('click', shareResultsOnX);
+
+        backToTopFromPredictButton.addEventListener('click', () => showPage('topPage'));
+        backToTopFromResultsButton.addEventListener('click', () => showPage('topPage'));
+
+        // 検索入力フィールドのイベントリスナー
+        songSearchInput.addEventListener('input', (event) => {
+            renderAllSongs(event.target.value);
+        });
+
+        // 1秒ごとにカウントダウンを更新
+        const countdownInterval = setInterval(updateCountdown, 1000);
+
+        // 初期表示
+        updateCountdown();
+        showPage('topPage'); // 初期表示はトップページ
+
+        // ページを離れる際にインターバルをクリア (メモリリーク防止)
+        window.addEventListener('beforeunload', () => {
+            clearInterval(countdownInterval);
+        });
+    </script>
+</body>
+</html>
