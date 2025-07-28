@@ -296,7 +296,7 @@
             <h2 class="text-2xl font-bold mb-6 text-center text-purple-700">あなたのTOP5を予想しよう！</h2>
 
             <div class="mb-4 text-center text-gray-700">
-                <p>下のリストから上位5曲を選んでください。</p>
+                <p>下のリストから上位5曲を予想して選んでください。</p>
                 <p>選択後、右のエリアでドラッグ＆ドロップで順位を入れ替えられます。</p>
             </div>
 
@@ -333,33 +333,6 @@
             </div>
 
             <button id="backToTopFromPredict" class="action-button bg-gray-500 hover:bg-gray-600 mt-8">トップに戻る</button>
-        </div>
-
-        <!-- 結果ページセクション -->
-        <div id="resultsPage" class="page-section">
-            <h2 class="text-2xl font-bold mb-6 text-center text-purple-700">ファン全体の集計結果</h2>
-
-            <div id="overallRanking" class="mb-8">
-                <h3 class="text-xl font-semibold mb-3 text-gray-800">TOP5ランキング</h3>
-                <ul class="results-list">
-                    <!-- 結果はJavaScriptで動的に生成されます -->
-                    <li class="results-item"><span class="rank">1位</span> <span class="song-name">曲名A</span> <span class="score">スコア: 100</span></li>
-                    <li class="results-item"><span class="rank">2位</span> <span class="song-name">曲名B</span> <span class="score">スコア: 95</span></li>
-                    <li class="results-item"><span class="rank">3位</span> <span class="song-name">曲名C</span> <span class="score">スコア: 90</span></li>
-                    <!-- 以下、同様に5位まで -->
-                </ul>
-            </div>
-
-            <div id="yourPredictionResults" class="mb-8 hidden">
-                <h3 class="text-xl font-semibold mb-3 text-gray-800">あなたの予想と正解度</h3>
-                <p id="yourPredictionText" class="mb-4 text-gray-700">あなたの予想: 1位: 曲A, 2位: 曲B, ...</p>
-                <p id="accuracyScore" class="text-2xl font-bold text-green-600">正解度: XX%</p>
-                <button id="shareYourResultsOnXButton" class="action-button bg-blue-500 hover:bg-blue-600 mt-4">
-                    あなたの結果をX(旧Twitter)にシェアする
-                </button>
-            </div>
-
-            <button id="backToTopFromResults" class="action-button bg-gray-500 hover:bg-gray-600 mt-8">トップに戻る</button>
         </div>
 
         <footer class="footer">
@@ -501,11 +474,6 @@
                 predictButton.disabled = true;
                 predictButton.classList.add('hidden');
                 predictionClosedMessage.classList.remove('hidden');
-                // ライブ開催時刻を過ぎたら「結果を見る」ボタンを表示
-                if (now >= liveDate.getTime()) {
-                    viewResultsButton.classList.remove('hidden');
-                    viewResultsButton.textContent = '結果を見る';
-                }
             }
         }
 
@@ -596,13 +564,6 @@
                 return;
             }
 
-            // ユーザーの予想内容をシェア用にローカルストレージに保存
-            const predictionData = selectedSongs.map((song, index) => ({
-                songId: song.id,
-                rank: index + 1
-            }));
-            localStorage.setItem('lastPrediction', JSON.stringify(predictionData));
-
             // Xへのシェアを実行
             sharePredictionOnX();
 
@@ -632,56 +593,7 @@
             window.open(tweetUrl, '_blank');
         }
 
-        // 結果ページの表示 (仮データ)
-        function renderResults() {
-            const overallRankingListElement = overallRankingElement.querySelector('ul');
-            overallRankingListElement.innerHTML = ''; // リストをクリア
-
-            // 仮の集計結果データ (TOP5に修正)
-            const mockOverallResults = [
-                { id: 'song6', name: '勝つんだ！', score: 120, rank: 1 },
-                { id: 'song25', name: '風一揆', score: 115, rank: 2 },
-                { id: 'song18', name: '同じ時代に生まれた若者たち', score: 110, rank: 3 },
-                { id: 'song42', name: '男装レボリューション', score: 105, rank: 4 },
-                { id: 'song1', name: '男坂', score: 100, rank: 5 },
-            ];
-
-            mockOverallResults.forEach(result => {
-                const li = document.createElement('li');
-                li.className = 'results-item';
-                li.innerHTML = `<span class="rank">${result.rank}位</span> <span class="song-name">${result.name}</span> <span class="score">スコア: ${result.score}</span>`;
-                overallRankingListElement.appendChild(li);
-            });
-
-            // ユーザー自身の予想と正解度の表示 (ローカルストレージに保存された予想があれば)
-            const lastPrediction = JSON.parse(localStorage.getItem('lastPrediction'));
-            if (lastPrediction && lastPrediction.length === 5) { // 5曲に変更
-                yourPredictionResultsElement.classList.remove('hidden');
-                let yourPredictionString = 'あなたの予想: ';
-                lastPrediction.forEach((item, index) => {
-                    const song = allSongs.find(s => s.id === item.songId);
-                    if (song) {
-                        yourPredictionString += `${index + 1}位: ${song.name}${index < 4 ? ', ' : ''}`; // カンマの数を調整
-                    }
-                });
-                yourPredictionTextElement.textContent = yourPredictionString;
-
-                // 正解度ロジック (簡易版: 順位が一致した数で計算)
-                let correctCount = 0;
-                lastPrediction.forEach((userItem, userIndex) => {
-                    const overallRankedItem = mockOverallResults.find(r => r.id === userItem.songId);
-                    if (overallRankedItem && overallRankedItem.rank === (userIndex + 1)) {
-                        correctCount++;
-                    }
-                });
-                const accuracy = (correctCount / 5) * 100; // 5に変更
-                accuracyScoreElement.textContent = `正解度: ${accuracy.toFixed(1)}%`;
-
-            } else {
-                yourPredictionResultsElement.classList.add('hidden');
-            }
-        }
-
+       
         // X（旧Twitter）シェア機能 (結果ページ用)
         function shareResultsOnX() {
             const accuracyText = accuracyScoreElement.textContent;
