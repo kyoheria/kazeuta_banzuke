@@ -10,7 +10,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Sortable.js CDN for drag-and-drop -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
-        <style>
+    <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f0f2f5; /* 明るいグレーの背景 */
@@ -191,7 +191,7 @@
             font-weight: 600;
         }
 
-        /* 結果表示 */
+        /* 結果表示 (このセクションは非表示になり、関連するスクリプトも削除されます) */
         .results-list {
             list-style: none;
             padding: 0;
@@ -267,7 +267,7 @@
 
             <main>
                 <p>
-                    風男塾の最新アルバム「風歌番付」にちなんで、風王(ファン)の皆さん上位5曲を勝手に予想するサイトです。/n
+                    風男塾の最新アルバム「風歌番付」にちなんで、風王(ファン)の皆さん上位5曲を勝手に予想するサイトです。<br>
                     ライブ開催日までのカウントダウンを見ながら、ご自身の想いを込めて予想を投稿しましょう！
                 </p>
                 <div class="mt-4 mb-6">
@@ -286,7 +286,7 @@
                 <div class="action-area">
                     <button id="predictButton" class="action-button" disabled>予想する</button>
                     <span id="predictionClosedMessage" class="hidden text-gray-600 text-lg">投票受付終了</span>
-                    <button id="viewResultsButton" class="action-button hidden">結果を見る</button>
+                    <!-- 結果を見るボタンは削除 -->
                 </div>
             </main>
         </div>
@@ -329,11 +329,13 @@
             <!-- 投稿完了メッセージ (初期は非表示) -->
             <div id="predictionConfirmation" class="confirmation-message hidden mt-8">
                 <p>🎉 予想が完了しました！X(旧Twitter)に投稿されました！ご参加ありがとうございます！</p>
-                <!-- shareOnXButton は submitPredictionButton に統合されたため削除 -->
             </div>
 
             <button id="backToTopFromPredict" class="action-button bg-gray-500 hover:bg-gray-600 mt-8">トップに戻る</button>
         </div>
+
+        <!-- 結果ページセクションは削除 -->
+        
 
         <footer class="footer">
             <p>&copy; 2025 風歌番付 風王(ファン)勝手に予想サイト.</p>
@@ -352,12 +354,12 @@
         // DOM要素の取得
         const topPage = document.getElementById('topPage');
         const predictionPage = document.getElementById('predictionPage');
-        const resultsPage = document.getElementById('resultsPage');
+        // const resultsPage = document.getElementById('resultsPage'); // 削除
 
         const countdownElement = document.getElementById('countdown');
         const predictButton = document.getElementById('predictButton');
         const predictionClosedMessage = document.getElementById('predictionClosedMessage');
-        const viewResultsButton = document.getElementById('viewResultsButton');
+        // const viewResultsButton = document.getElementById('viewResultsButton'); // 削除
 
         const allSongsListElement = document.getElementById('allSongsList');
         const songSearchInput = document.getElementById('songSearchInput'); // 検索入力フィールド
@@ -367,14 +369,15 @@
         const predictionConfirmation = document.getElementById('predictionConfirmation');
         // const shareOnXButton = document.getElementById('shareOnXButton'); // 削除されたためコメントアウト
 
-        const overallRankingElement = document.getElementById('overallRanking');
-        const yourPredictionResultsElement = document.getElementById('yourPredictionResults');
-        const yourPredictionTextElement = document.getElementById('yourPredictionText');
-        const accuracyScoreElement = document.getElementById('accuracyScore');
-        const shareYourResultsOnXButton = document.getElementById('shareYourResultsOnXButton');
+        // 結果表示関連のDOM要素は削除
+        // const overallRankingElement = document.getElementById('overallRanking');
+        // const yourPredictionResultsElement = document.getElementById('yourPredictionResults');
+        // const yourPredictionTextElement = document.getElementById('yourPredictionText');
+        // const accuracyScoreElement = document.getElementById('accuracyScore');
+        // const shareYourResultsOnXButton = document.getElementById('shareYourResultsOnXButton');
 
         const backToTopFromPredictButton = document.getElementById('backToTopFromPredict');
-        const backToTopFromResultsButton = document.getElementById('backToTopFromResults');
+        // const backToTopFromResultsButton = document.getElementById('backToTopFromResults'); // 削除
 
         // 風男塾の全楽曲リスト
         const allSongs = [
@@ -434,7 +437,7 @@
 
         // ページ表示を切り替える関数
         function showPage(pageId) {
-            const pages = [topPage, predictionPage, resultsPage];
+            const pages = [topPage, predictionPage]; // resultsPageを削除
             pages.forEach(page => {
                 if (page.id === pageId) {
                     page.classList.add('active');
@@ -468,12 +471,13 @@
                 predictButton.textContent = '予想する';
                 predictButton.classList.remove('hidden');
                 predictionClosedMessage.classList.add('hidden');
-                viewResultsButton.classList.add('hidden');
+                // viewResultsButton は削除されたため、ここでの制御は不要
             } else {
                 // 予想投稿期間終了後
                 predictButton.disabled = true;
                 predictButton.classList.add('hidden');
                 predictionClosedMessage.classList.remove('hidden');
+                // ライブ開催時刻を過ぎても結果を見るボタンは表示しない
             }
         }
 
@@ -564,6 +568,13 @@
                 return;
             }
 
+            // ユーザーの予想内容をシェア用にローカルストレージに保存
+            const predictionData = selectedSongs.map((song, index) => ({
+                songId: song.id,
+                rank: index + 1
+            }));
+            localStorage.setItem('lastPrediction', JSON.stringify(predictionData));
+
             // Xへのシェアを実行
             sharePredictionOnX();
 
@@ -593,15 +604,16 @@
             window.open(tweetUrl, '_blank');
         }
 
-       
-        // X（旧Twitter）シェア機能 (結果ページ用)
+        // 結果ページの表示 (仮データ) - この関数はもう使用されませんが、念のため残しておきます。
+        function renderResults() {
+            // この関数は結果表示が不要になったため、実質的に何も行いません。
+            // 必要であれば、ここに「結果は後日Twitterで発表します」のようなメッセージを表示するロジックを追加できます。
+            console.log("結果表示機能は削除されました。");
+        }
+
+        // X（旧Twitter）シェア機能 (結果ページ用) - この関数はもう使用されませんが、念のため残しておきます。
         function shareResultsOnX() {
-            const accuracyText = accuracyScoreElement.textContent;
-            const yourPredictionText = yourPredictionTextElement.textContent;
-            let tweetText = `風歌番付ファン予想の結果が出ました！\n${accuracyText}\n\n${yourPredictionText}\n\n#風歌番付勝手に予想 #風男塾`; // ハッシュタグを修正
-            const siteUrl = window.location.href;
-            const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(siteUrl)}`;
-            window.open(tweetUrl, '_blank');
+            console.log("結果シェア機能は削除されました。");
         }
 
 
@@ -617,20 +629,21 @@
             songSearchInput.value = ''; // 検索バーをクリア
         });
 
-        viewResultsButton.addEventListener('click', () => {
-            showPage('resultsPage');
-            renderResults(); // 結果をレンダリング
-        });
+        // viewResultsButton は削除されたため、このイベントリスナーも削除
+        // viewResultsButton.addEventListener('click', () => {
+        //     showPage('resultsPage');
+        //     renderResults(); // 結果をレンダリング
+        // });
 
         // 「Xに投稿する」ボタンのクリックイベントを新しい関数に紐付け
         submitPredictionButton.addEventListener('click', submitPredictionAndShareOnX);
-        // shareOnXButton は削除されたため、このイベントリスナーも不要
-        // shareOnXButton.addEventListener('click', sharePredictionOnX);
-
-        shareYourResultsOnXButton.addEventListener('click', shareResultsOnX);
+        
+        // shareYourResultsOnXButton は削除されたため、このイベントリスナーも削除
+        // shareYourResultsOnXButton.addEventListener('click', shareResultsOnX);
 
         backToTopFromPredictButton.addEventListener('click', () => showPage('topPage'));
-        backToTopFromResultsButton.addEventListener('click', () => showPage('topPage'));
+        // backToTopFromResultsButton は削除されたため、このイベントリスナーも削除
+        // backToTopFromResultsButton.addEventListener('click', () => showPage('topPage'));
 
         // 検索入力フィールドのイベントリスナー
         songSearchInput.addEventListener('input', (event) => {
