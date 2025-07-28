@@ -598,7 +598,7 @@
                     tweetText += `${index + 1}位: ${song.name}\n`;
                 }
             });
-            tweetText += '\n#風歌番付勝手に予想 #風男塾'; // ハッシュタグを修正
+            tweetText += '\n#風歌番付私のランキング #風男塾'; // ハッシュタグを修正
             const siteUrl = window.location.href; // 現在のサイトURL
             const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(siteUrl)}`;
             window.open(tweetUrl, '_blank');
